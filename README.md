@@ -1,0 +1,112 @@
+# 城市新生活
+
+《城市新生活》是一款基于 HTML、JavaScript 和 Phaser 3 制作的现代城市卡通风格探索游戏。
+
+当前是第一开发阶段的可运行原型，重点是把后续开发需要的工程基础搭稳，而不是一次加入所有玩法。
+
+## 当前已经实现
+
+- 启动场景、资源加载场景和主菜单场景。
+- 新游戏与浏览器本地自动存档。
+- 姓名、身份、肤色、发型、发色和服装颜色选择。
+- 一张可以连续移动的大型城市地图。
+- 玩家住宅、城市街道、公园和小游戏场所。
+- `WASD` 与方向键移动、镜头跟随和建筑碰撞。
+- 游戏日期及时钟，现实 1 秒对应游戏 1 分钟。
+- 独立 HUD 信息层和暂停场景。
+- 5 名拥有工作与休息时间表的 NPC，可接近后按 `E` 对话。
+- “搬入城市的第一天”完整教学主线和 HUD 目标追踪。
+- 公园收集、包裹配送、配电箱调查和 NPC 好感度记录。
+- 玩家住宅、社区中心、街边商店和接物挑战馆室内场景。
+- 可通关的接物挑战小游戏，成功后获得金钱奖励。
+- `E` 键互动、`I` 键查看背包内容和 `Esc` 暂停。
+
+## 第一次运行
+
+请先确认电脑已经安装 Node.js，然后在本项目文件夹打开终端。
+
+第一步，只需安装一次依赖：
+
+```bash
+npm install
+```
+
+第二步，每次开发游戏时运行：
+
+```bash
+npm run dev
+```
+
+终端会显示一个类似 `http://localhost:5173/` 的地址。按住 `Ctrl` 点击该地址，或将它复制到 Chrome、Edge 等现代浏览器中。
+
+不要直接双击 `index.html`，因为浏览器的安全规则会阻止 JavaScript 模块通过 `file://` 方式正常加载。
+
+## 游戏操作
+
+| 按键 | 当前作用 |
+| --- | --- |
+| `WASD` / 方向键 | 移动角色 |
+| `E` | 与当前位置互动 |
+| `I` | 查看当前背包物品 |
+| `Esc` | 暂停或继续游戏 |
+| 鼠标左键 | 点击菜单按钮 |
+
+## 生成网页发布版本
+
+运行：
+
+```bash
+npm run build
+```
+
+成功后会生成 `dist` 文件夹。这个文件夹就是可以部署到静态网页服务器的最终网页版本。
+
+若想在本机预览刚打包的版本，可以运行：
+
+```bash
+npm run preview
+```
+
+## 零基础常用修改位置
+
+- 修改游戏标题：`index.html` 和 `src/scenes/MainMenuScene.js`。
+- 修改设计分辨率：`src/config/constants.js` 中的 `GAME_WIDTH`、`GAME_HEIGHT`。
+- 修改城市大小：`src/config/constants.js` 中的 `WORLD_WIDTH`、`WORLD_HEIGHT`。
+- 修改走路速度：`src/config/constants.js` 中的 `PLAYER_SPEED`。
+- 修改时间速度：`src/config/constants.js` 中的 `GAME_MINUTES_PER_REAL_SECOND`。
+- 修改角色身份和初始金钱：`src/scenes/CharacterCreationScene.js` 与 `src/core/GameStore.js`。
+- 修改第一版地图布局：`src/systems/CityMapBuilder.js`。
+
+修改后保存文件，开发服务器会自动刷新浏览器，不必重复执行 `npm run dev`。
+
+## 核心模块关系
+
+```text
+main.js
+  └─ 创建 Phaser.Game
+      └─ BootScene → PreloadScene → MainMenuScene
+                                  ├─ CharacterCreationScene
+                                  └─ GameScene
+                                      ├─ Player
+                                      ├─ CityMapBuilder
+                                      ├─ TimeSystem
+                                      ├─ NPCScheduleSystem
+                                      ├─ QuestSystem
+                                      ├─ HUDScene
+                                      ├─ InteriorScene
+                                      ├─ CatchGameScene
+                                      └─ PauseScene
+
+GameStore      保存当前游戏的全局数据
+EventBus       在互不依赖的模块之间传递消息
+SaveManager    将 GameStore 写入浏览器本地存储
+```
+
+## 开发约定
+
+1. 场景负责流程组织，不把所有功能都塞入 `GameScene`。
+2. 玩家、NPC 和物品放入 `entities`，可复用能力放入 `components`。
+3. 时间、任务和 NPC 日程等整体规则放入 `systems`。
+4. 可调整数值逐步转移到 `public/assets/data/configs` 的 JSON 配置表。
+5. 全局模块通过 `EventBus` 通信，避免相互直接修改内部对象。
+6. 每项新功能继续遵循“先讲设计思路，再写中文注释代码，最后说明修改方式”。

@@ -1,0 +1,15 @@
+# npm 下载的第三方依赖体积很大，可以随时重新安装，因此不提交到 Git。
+node_modules/
+.npm-cache/
+.chrome-test-profile*/
+.test-output/
+
+# Vite 打包生成的文件由源代码重新构建，因此通常不提交。
+dist/
+
+# 编辑器和操作系统产生的临时文件。
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log

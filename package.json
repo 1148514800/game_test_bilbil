@@ -1,0 +1,18 @@
+{
+  "name": "city-new-life",
+  "version": "0.1.0",
+  "private": true,
+  "description": "《城市新生活》——基于 Phaser 3 的现代城市探索游戏",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.3"
+  }
+}
