@@ -23,6 +23,15 @@ export const gameConfig = {
   backgroundColor: '#dff4f2',
   pixelArt: false,
   antialias: true,
+  // 请求浏览器优先使用高性能 GPU，降低集成显卡切换造成的瞬时卡顿。
+  powerPreference: 'high-performance',
+  fps: {
+    // limit=0 表示不把游戏锁死在 60 FPS，而是跟随显示器的刷新率。
+    target: 60,
+    limit: 0,
+    forceSetTimeOut: false,
+    smoothStep: true,
+  },
   dom: {
     createContainer: true,
   },
@@ -34,6 +43,9 @@ export const gameConfig = {
     default: 'arcade',
     arcade: {
       gravity: { x: 0, y: 0 },
+      // 默认固定 60Hz 会让 120/144Hz 屏幕上的人物隔帧更新。
+      // 改为可变步长后，物理位置会在每个浏览器渲染帧同步更新。
+      fixedStep: false,
       debug: false,
     },
   },

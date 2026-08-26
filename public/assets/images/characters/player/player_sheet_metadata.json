@@ -1,0 +1,29 @@
+{
+  "frameWidth": 128,
+  "frameHeight": 192,
+  "characterHeight": 160,
+  "footBaselineY": 176,
+  "idle": {
+    "rows": 5,
+    "columns": 1,
+    "sheetSize": [
+      128,
+      960
+    ]
+  },
+  "walk": {
+    "rows": 5,
+    "columns": 8,
+    "sheetSize": [
+      1024,
+      960
+    ]
+  },
+  "directionRows": [
+    "down",
+    "down-left",
+    "left",
+    "up-left",
+    "up"
+  ]
+}

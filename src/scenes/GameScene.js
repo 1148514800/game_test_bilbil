@@ -41,7 +41,10 @@ export class GameScene extends BaseScene {
     eventBus.on(EVENTS.QUEST_CHANGED, this.refreshQuestItems, this);
 
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    this.cameras.main.startFollow(this.player, true, 0.09, 0.09);
+    // 缩短镜头跟随延迟，减少镜头拖尾造成的“角色掉帧”错觉。
+    this.cameras.main.startFollow(this.player, true, 0.16, 0.16);
+    // 当前角色是高清卡通素材，不做像素取整可避免亚像素移动时轻微抖动。
+    this.cameras.main.roundPixels = false;
     this.cameras.main.setZoom(1);
 
     this.setupInput();

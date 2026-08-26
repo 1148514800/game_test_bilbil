@@ -1,0 +1,3 @@
+# 仅用于重新生成玩家 Sprite Sheet，不会进入浏览器运行包。
+numpy>=1.26
+Pillow>=10.0
