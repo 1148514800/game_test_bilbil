@@ -4,15 +4,12 @@ import { gameStore } from '../core/GameStore.js';
 import { saveManager } from '../core/SaveManager.js';
 
 const OBJECTIVES = [
-  '和住宅旁的邻居小林谈谈',
-  '前往城市公园，与管理员陈叔交谈',
+  '与住宅附近的小林聊天',
+  '前往城市公园，与陈叔聊天',
   '在公园里收集 3 件遗失物品',
-  '把找到的物品交给公园管理员',
-  '把包裹送给街边商店的店员小雨',
-  '前往小游戏广场，调查场馆外的配电箱',
-  '与小游戏馆入口的阿杰交谈',
-  '完成接物挑战，至少获得 8 分',
-  '教学完成：自由探索城市并帮助居民',
+  '把 3 件遗失物交给陈叔',
+  '前往商店，把陈叔的包裹交给小雨',
+  '教学完成，自由探索城市。',
 ];
 
 /** 教学任务系统只管理任务规则，不直接绘制对话框或地图物品。 */
@@ -31,8 +28,6 @@ export class QuestSystem {
       neighbor: ['欢迎来到这座城市！有空多去公园走走吧。'],
       parkKeeper: ['公园的花草每天都需要照料。'],
       shopClerk: ['欢迎光临！商店还在准备货架。'],
-      arcadeManager: ['接物挑战馆每天上午十点开门。'],
-      resident: ['天气不错，适合在城市里散步。'],
     };
 
     if (npcId === 'neighbor' && this.step === 0) {
@@ -59,21 +54,16 @@ export class QuestSystem {
     }
     if (npcId === 'shopClerk' && this.step === 4 && gameStore.hasItem('delivery-package')) {
       return {
-        lines: ['这是陈叔托你送来的吧？辛苦了！', '小游戏馆好像停电了，你可以去广场看看。'],
+        lines: ['这是陈叔托你送来的吧？辛苦了！', '这是给你的谢礼。接下来可以自由探索这座城市了。'],
         onComplete: () => {
           gameStore.removeItem('delivery-package');
           gameStore.addMoney(30);
+          // 包裹送达就是 MVP 教学终点，小游戏不再影响主线进度。
+          gameStore.state.quests.tutorial.status = 'completed';
           this.advance(5, npcId);
         },
       };
     }
-    if (npcId === 'arcadeManager' && this.step === 6) {
-      return {
-        lines: ['电力恢复了！我是场馆管理员阿杰。', '试试接物挑战吧：接住星星，躲开垃圾，拿到 8 分就算过关。'],
-        onComplete: () => this.advance(7, npcId),
-      };
-    }
-
     return { lines: generic[npcId] ?? ['你好！'], onComplete: null };
   }
 
@@ -86,17 +76,11 @@ export class QuestSystem {
     return true;
   }
 
-  investigateBreaker() {
-    if (this.step !== 5) return false;
-    this.advance(6);
-    return true;
-  }
-
+  /** 接物小游戏作为自由探索内容保留，只发放原有奖励，不再推进教学。 */
   completeMinigame(score) {
-    if (this.step !== 7 || score < 8) return false;
+    if (score < 8) return false;
     gameStore.addMoney(50);
-    gameStore.state.quests.tutorial.status = 'completed';
-    this.advance(8);
+    saveManager.save();
     return true;
   }
 

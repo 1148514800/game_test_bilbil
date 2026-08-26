@@ -3,7 +3,6 @@ import { BaseScene } from './base/BaseScene.js';
 import { SCENE_KEYS } from '../config/sceneKeys.js';
 import { gameStore } from '../core/GameStore.js';
 import { saveManager } from '../core/SaveManager.js';
-import { questSystem } from '../systems/QuestSystem.js';
 
 const ROOMS = {
   home: { name: '玩家住宅', color: 0xf5d6ad, feature: '床铺' },
@@ -102,7 +101,7 @@ export class InteriorScene extends BaseScene {
       gameStore.setTime({ day: time.day + 1, hour: 8, minute: 0 });
       saveManager.save();
     } else if (this.roomId === 'arcade') {
-      if (questSystem.step < 7) return;
+      // 小游戏作为可选内容保留，进入条件与教学任务完全解耦。
       this.scene.launch(SCENE_KEYS.CATCH_GAME);
       this.scene.sleep();
     }

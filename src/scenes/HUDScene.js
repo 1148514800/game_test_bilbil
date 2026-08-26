@@ -93,8 +93,13 @@ export class HUDScene extends BaseScene {
   }
 
   refreshQuest() {
-    const prefix = questSystem.step >= 8 ? '自由探索' : '教学主线';
-    this.questText.setText(`${prefix}：${questSystem.getObjective()}`);
+    const tutorial = gameStore.state.quests.tutorial;
+    // 完成态使用产品文案原句，避免再显示已经结束的“教学主线”前缀。
+    if (tutorial.status === 'completed') {
+      this.questText.setText('教学完成，自由探索城市。');
+      return;
+    }
+    this.questText.setText(`教学主线：${questSystem.getObjective()}`);
   }
 
   showZone(zoneName) {

@@ -22,17 +22,12 @@ export class GameScene extends BaseScene {
     const mapData = CityMapBuilder.build(this);
     const savedPosition = gameStore.state.player.position;
 
-    this.player = new Player(
-      this,
-      savedPosition.x,
-      savedPosition.y,
-      gameStore.state.player.appearance,
-    );
+    // 地图玩家统一使用正式 Sprite，不再读取角色创建时代的外观选项。
+    this.player = new Player(this, savedPosition.x, savedPosition.y);
     this.physics.add.collider(this.player, mapData.obstacles);
 
     this.zones = mapData.zones;
     this.doors = mapData.doors;
-    this.breaker = mapData.breaker;
     this.currentZoneName = '';
     this.timeSystem = new TimeSystem();
     this.npcScheduleSystem = new NPCScheduleSystem(this);
@@ -112,12 +107,6 @@ export class GameScene extends BaseScene {
       nearbyItem.destroy();
       questSystem.collectLostItem();
       eventBus.emit(EVENTS.SHOW_TOAST, '已拾取公园遗失物');
-      return;
-    }
-
-    if (Phaser.Math.Distance.Between(this.player.x, this.player.y, this.breaker.x, this.breaker.y) < 115) {
-      if (questSystem.investigateBreaker()) eventBus.emit(EVENTS.SHOW_TOAST, '你合上了松动的电闸，场馆恢复供电！');
-      else eventBus.emit(EVENTS.SHOW_TOAST, '配电箱目前工作正常。');
       return;
     }
 

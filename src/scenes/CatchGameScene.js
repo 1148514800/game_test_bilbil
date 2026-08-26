@@ -4,7 +4,7 @@ import { SCENE_KEYS } from '../config/sceneKeys.js';
 import { questSystem } from '../systems/QuestSystem.js';
 import { TextButton } from '../ui/components/TextButton.js';
 
-/** 教学主线的第一个小游戏：接住星星、躲避垃圾。 */
+/** 自由探索中的可选小游戏：接住星星、躲避垃圾。 */
 export class CatchGameScene extends BaseScene {
   constructor() {
     super(SCENE_KEYS.CATCH_GAME);

@@ -6,7 +6,7 @@ const CLOTHES_COLORS = [0x4f8dd6, 0xee795f, 0x6abf75, 0xf2b84b, 0x8c6ed1, 0x394b
 
 /**
  * 使用基础图形绘制的临时卡通角色。
- * 它既能作为角色创建页的预览，也能直接成为地图玩家，未来可在此统一替换精灵图。
+ * 当前只供 NPC 使用；地图玩家统一使用正式的八方向 Sprite。
  */
 export class AvatarView extends Phaser.GameObjects.Container {
   constructor(scene, x, y, appearance, displayScale = 1) {
@@ -66,10 +66,3 @@ export class AvatarView extends Phaser.GameObjects.Container {
     this.hair.setSize(hairStyle.width, hairStyle.height).setY(hairStyle.y);
   }
 }
-
-export const AVATAR_OPTION_COUNTS = Object.freeze({
-  skin: SKIN_COLORS.length,
-  hair: 4,
-  hairColor: HAIR_COLORS.length,
-  clothesColor: CLOTHES_COLORS.length,
-});

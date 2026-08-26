@@ -23,7 +23,6 @@ export class CityMapBuilder {
         { id: 'shop', name: '街边商店', x: 1010, y: 1920 },
         { id: 'arcade', name: '接物挑战馆', x: 2695, y: 1880 },
       ],
-      breaker: { x: 2980, y: 1640 },
       zones: [
         { name: '玩家住宅区', x: 0, y: 0, width: 1150, height: 920 },
         { name: '城市公园', x: 2050, y: 120, width: 1000, height: 820 },
@@ -100,11 +99,6 @@ export class CityMapBuilder {
       color: '#654f28',
     }).setOrigin(0.5);
 
-    // 配电箱是教学主线的调查点，黄色闪电符号让玩家容易发现。
-    scene.add.rectangle(2980, 1640, 66, 88, 0x52636a).setStrokeStyle(5, 0xf4ce5e);
-    scene.add.text(2980, 1640, '⚡', {
-      fontFamily: 'sans-serif', fontSize: '35px', color: '#f4ce5e',
-    }).setOrigin(0.5);
   }
 
   static drawStreetDetails(scene, obstacles) {

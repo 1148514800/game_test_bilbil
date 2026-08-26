@@ -13,8 +13,7 @@ import {
  * 因此替换玩家素材不会让所有 NPC 都变成同一个正式角色。
  */
 export class Player extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, _appearance) {
-    // _appearance 仅为兼容 GameScene 原有调用接口；地图玩家现在使用固定正式素材。
+  constructor(scene, x, y) {
     // 玩家从创建开始就只使用行走图集；待机也取其中的静止帧，避免形象突变。
     super(scene, x, y, PLAYER_ASSET_KEYS.WALK, 0);
     scene.add.existing(this);

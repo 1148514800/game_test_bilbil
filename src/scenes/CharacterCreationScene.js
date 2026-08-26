@@ -3,11 +3,10 @@ import { SCENE_KEYS } from '../config/sceneKeys.js';
 import { gameStore } from '../core/GameStore.js';
 import { saveManager } from '../core/SaveManager.js';
 import { TextButton } from '../ui/components/TextButton.js';
-import { AvatarView, AVATAR_OPTION_COUNTS } from '../ui/components/AvatarView.js';
 
 const IDENTITIES = ['自由职业者', '学生', '城市职员'];
 
-/** 玩家第一次进入游戏时使用的角色创建页面。 */
+/** 玩家第一次进入游戏时使用的精简角色创建页面。 */
 export class CharacterCreationScene extends BaseScene {
   constructor() {
     super(SCENE_KEYS.CHARACTER_CREATION);
@@ -15,43 +14,27 @@ export class CharacterCreationScene extends BaseScene {
 
   create() {
     this.add.rectangle(640, 360, 1280, 720, 0xdff4f2);
-    this.createTitle('创建你的城市居民', 62);
-    this.createPanel(640, 390, 1040, 570);
+    this.createTitle('创建你的城市居民', 78);
+    this.createPanel(640, 380, 760, 520);
 
-    this.selection = {
-      identityIndex: 0,
-      appearance: {
-        skinIndex: 0,
-        hairIndex: 0,
-        hairColorIndex: 0,
-        clothesColorIndex: 0,
-      },
-    };
+    // 玩家外观已经统一为正式 Sprite，此处只保存真正影响游戏的数据。
+    this.selection = { identityIndex: 0 };
 
-    this.add.text(345, 145, '姓名', this.getLabelStyle()).setOrigin(0.5);
-    this.nameInput = this.add.dom(345, 195).createFromHTML(
+    this.add.text(640, 175, '姓名', this.getLabelStyle()).setOrigin(0.5);
+    this.nameInput = this.add.dom(640, 225).createFromHTML(
       '<input class="character-name-input" maxlength="10" value="新居民" aria-label="角色姓名" />',
     );
 
-    this.add.text(345, 260, '身份（决定初始金钱）', this.getLabelStyle()).setOrigin(0.5);
-    this.identityText = this.add.text(345, 308, '', this.getValueStyle()).setOrigin(0.5);
-    this.createCycleButtons(345, 308, () => this.cycleIdentity(-1), () => this.cycleIdentity(1), 220);
-
-    this.add.text(860, 145, '外观预览', this.getLabelStyle()).setOrigin(0.5);
-    this.avatar = new AvatarView(this, 860, 280, this.selection.appearance, 2.4);
-
-    this.addAppearanceRow('肤色', 455, 'skinIndex', AVATAR_OPTION_COUNTS.skin);
-    this.addAppearanceRow('发型', 505, 'hairIndex', AVATAR_OPTION_COUNTS.hair);
-    this.addAppearanceRow('发色', 555, 'hairColorIndex', AVATAR_OPTION_COUNTS.hairColor);
-    this.addAppearanceRow('服装颜色', 605, 'clothesColorIndex', AVATAR_OPTION_COUNTS.clothesColor);
-
+    this.add.text(640, 310, '身份（决定初始金钱）', this.getLabelStyle()).setOrigin(0.5);
+    this.identityText = this.add.text(640, 375, '', this.getValueStyle()).setOrigin(0.5);
+    this.createCycleButtons(640, 375, () => this.cycleIdentity(-1), () => this.cycleIdentity(1), 230);
     this.updateIdentityText();
 
-    new TextButton(this, 430, 665, '返回主菜单', () => {
+    new TextButton(this, 455, 585, '返回主菜单', () => {
       this.scene.start(SCENE_KEYS.MAIN_MENU);
     }, { width: 250, color: 0x647b7a });
 
-    new TextButton(this, 850, 665, '进入城市', () => this.confirmCharacter(), {
+    new TextButton(this, 825, 585, '进入城市', () => this.confirmCharacter(), {
       width: 250,
       color: 0xe98a4a,
       hoverColor: 0xf2a65a,
@@ -77,7 +60,7 @@ export class CharacterCreationScene extends BaseScene {
     };
   }
 
-  /** 为可循环选择的内容创建左右箭头按钮。 */
+  /** 为身份选择创建左右箭头按钮。 */
   createCycleButtons(centerX, y, onPrevious, onNext, distance = 150) {
     new TextButton(this, centerX - distance, y, '‹', onPrevious, {
       width: 52,
@@ -89,20 +72,6 @@ export class CharacterCreationScene extends BaseScene {
       height: 48,
       fontSize: 32,
     });
-  }
-
-  addAppearanceRow(label, y, property, optionCount) {
-    this.add.text(690, y, label, this.getLabelStyle()).setOrigin(0, 0.5);
-    const valueText = this.add.text(925, y, '样式 1', this.getValueStyle()).setOrigin(0.5);
-
-    const changeValue = (direction) => {
-      const oldValue = this.selection.appearance[property];
-      this.selection.appearance[property] = (oldValue + direction + optionCount) % optionCount;
-      valueText.setText(`样式 ${this.selection.appearance[property] + 1}`);
-      this.avatar.refreshAppearance(this.selection.appearance);
-    };
-
-    this.createCycleButtons(925, y, () => changeValue(-1), () => changeValue(1), 115);
   }
 
   cycleIdentity(direction) {
@@ -136,7 +105,6 @@ export class CharacterCreationScene extends BaseScene {
     gameStore.setCharacter({
       name: name.slice(0, 10),
       identity: IDENTITIES[this.selection.identityIndex],
-      appearance: { ...this.selection.appearance },
     });
     saveManager.save();
     this.scene.start(SCENE_KEYS.GAME);

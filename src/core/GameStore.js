@@ -2,22 +2,19 @@ import { INITIAL_TIME } from '../config/constants.js';
 import { EVENTS } from '../config/eventNames.js';
 import { eventBus } from './EventBus.js';
 
+const CORE_NPC_IDS = new Set(['neighbor', 'parkKeeper', 'shopClerk']);
+const TUTORIAL_COMPLETED_STEP = 5;
+
 /**
  * 返回一份全新的默认存档数据。
  * 每次都创建新对象，避免新游戏错误地沿用上一局的背包或任务数据。
  */
 function createInitialState() {
   return {
-    saveVersion: 1,
+    saveVersion: 2,
     player: {
       name: '新居民',
       identity: '自由职业者',
-      appearance: {
-        skinIndex: 0,
-        hairIndex: 0,
-        hairColorIndex: 0,
-        clothesColorIndex: 0,
-      },
       money: 200,
       position: { x: 520, y: 520 },
     },
@@ -27,6 +24,24 @@ function createInitialState() {
       tutorial: { status: 'not-started', step: 0 },
     },
     npcRelationships: {},
+  };
+}
+
+/**
+ * 将旧版 9 段教学迁移到当前 5 段流程。
+ * 旧存档 step 5 以后都代表已经送达包裹，因此直接视为教学完成。
+ */
+function normalizeTutorial(savedTutorial) {
+  const numericStep = Number(savedTutorial?.step);
+  const step = Number.isFinite(numericStep) ? Math.max(0, Math.floor(numericStep)) : 0;
+
+  if (savedTutorial?.status === 'completed' || step >= TUTORIAL_COMPLETED_STEP) {
+    return { status: 'completed', step: TUTORIAL_COMPLETED_STEP };
+  }
+
+  return {
+    status: savedTutorial?.status === 'not-started' ? 'not-started' : 'active',
+    step: Math.min(step, TUTORIAL_COMPLETED_STEP - 1),
   };
 }
 
@@ -45,7 +60,7 @@ class GameStore {
     eventBus.emit(EVENTS.STATE_CHANGED, this.state);
   }
 
-  /** 保存角色创建页面产生的数据。 */
+  /** 保存角色创建页面产生的姓名与身份。 */
   setCharacter(profile) {
     const identityStartingMoney = {
       自由职业者: 200,
@@ -55,7 +70,8 @@ class GameStore {
 
     this.state.player = {
       ...this.state.player,
-      ...profile,
+      name: profile.name,
+      identity: profile.identity,
       money: identityStartingMoney[profile.identity] ?? 200,
     };
     this.state.quests.tutorial = { status: 'active', step: 0 };
@@ -110,15 +126,41 @@ class GameStore {
     this.state.npcRelationships[npcId] = oldValue + amount;
   }
 
-  /** 把读取到的普通对象恢复为当前全局状态。 */
+  /** 把旧版或当前版存档恢复为兼容当前 MVP 的全局状态。 */
   hydrate(savedState) {
     const defaults = createInitialState();
+    const source = savedState && typeof savedState === 'object' ? savedState : {};
+    const savedPlayer = source.player && typeof source.player === 'object' ? source.player : {};
+    const compatiblePlayer = { ...savedPlayer };
+    // 旧 appearance 字段仅用于已经删除的角色创建选项，不再带入运行时状态。
+    delete compatiblePlayer.appearance;
+
+    const savedQuests = source.quests && typeof source.quests === 'object' ? source.quests : {};
+    const savedRelationships =
+      source.npcRelationships && typeof source.npcRelationships === 'object'
+        ? source.npcRelationships
+        : {};
+
     this.state = {
       ...defaults,
-      ...savedState,
-      player: { ...defaults.player, ...savedState.player },
-      time: { ...defaults.time, ...savedState.time },
-      quests: { ...defaults.quests, ...savedState.quests },
+      ...source,
+      saveVersion: defaults.saveVersion,
+      player: {
+        ...defaults.player,
+        ...compatiblePlayer,
+        position: { ...defaults.player.position, ...savedPlayer.position },
+      },
+      time: { ...defaults.time, ...source.time },
+      inventory: Array.isArray(source.inventory) ? source.inventory : [],
+      quests: {
+        ...defaults.quests,
+        ...savedQuests,
+        tutorial: normalizeTutorial(savedQuests.tutorial),
+      },
+      // 已删除 NPC 的旧好感度键不再重新写入新存档。
+      npcRelationships: Object.fromEntries(
+        Object.entries(savedRelationships).filter(([npcId]) => CORE_NPC_IDS.has(npcId)),
+      ),
     };
     eventBus.emit(EVENTS.STATE_CHANGED, this.state);
   }
