@@ -9,6 +9,13 @@ export default defineConfig({
   server: {
     port: 5173,
     open: false,
+    // 开发时真实 AI 请求由 Vite 转发，浏览器不直接接触 Provider。
+    proxy: {
+      '/api/ai': {
+        target: 'http://127.0.0.1:8787',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: 'dist',

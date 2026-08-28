@@ -10,6 +10,7 @@ import { Player } from '../entities/player/Player.js';
 import { CityMapBuilder } from '../systems/CityMapBuilder.js';
 import { TimeSystem } from '../systems/TimeSystem.js';
 import { NPCScheduleSystem } from '../systems/NPCScheduleSystem.js';
+import { NPCBehaviorSystem } from '../systems/NPCBehaviorSystem.js';
 import { questSystem } from '../systems/QuestSystem.js';
 
 /** 游戏主场景负责组合地图、玩家和各个系统。 */
@@ -31,6 +32,11 @@ export class GameScene extends BaseScene {
     this.currentZoneName = '';
     this.timeSystem = new TimeSystem();
     this.npcScheduleSystem = new NPCScheduleSystem(this);
+    this.npcBehaviorSystem = new NPCBehaviorSystem(
+      this,
+      this.npcScheduleSystem,
+      questSystem,
+    );
     this.questItems = [];
     this.refreshQuestItems();
     eventBus.on(EVENTS.QUEST_CHANGED, this.refreshQuestItems, this);
@@ -57,6 +63,7 @@ export class GameScene extends BaseScene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.saveCurrentProgress();
       eventBus.off(EVENTS.QUEST_CHANGED, this.refreshQuestItems, this);
+      this.npcBehaviorSystem?.destroy();
       if (this.scene.isActive(SCENE_KEYS.HUD)) this.scene.stop(SCENE_KEYS.HUD);
     });
   }
@@ -83,7 +90,7 @@ export class GameScene extends BaseScene {
   update(_time, delta) {
     this.player.update();
     this.timeSystem.update(delta);
-    this.npcScheduleSystem.update(delta);
+    this.npcBehaviorSystem.update(delta);
     this.updateCurrentZone();
   }
 
@@ -93,6 +100,8 @@ export class GameScene extends BaseScene {
     if (nearestNpc) {
       const dialogue = questSystem.interactWithNpc(nearestNpc.profile.id);
       this.scene.launch(SCENE_KEYS.DIALOGUE, {
+        mode: dialogue.mode,
+        npcId: nearestNpc.profile.id,
         speaker: nearestNpc.profile.name,
         lines: dialogue.lines,
         onComplete: dialogue.onComplete,

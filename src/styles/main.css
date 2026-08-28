@@ -40,3 +40,24 @@ body {
 .character-name-input:focus {
   border-color: #f2a65a;
 }
+
+/* AI NPC 自由聊天输入框；密钥不会进入这个或任何其他前端资源。 */
+.npc-dialogue-input {
+  width: 660px;
+  padding: 13px 16px;
+  border: 3px solid #7ac7c4;
+  border-radius: 10px;
+  outline: none;
+  background: #ffffff;
+  color: #244342;
+  font-size: 20px;
+}
+
+.npc-dialogue-input:focus {
+  border-color: #f2a65a;
+}
+
+.npc-dialogue-input:disabled {
+  background: #d8e2e1;
+  color: #647b7a;
+}

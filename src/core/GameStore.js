@@ -1,8 +1,13 @@
 import { INITIAL_TIME } from '../config/constants.js';
 import { EVENTS } from '../config/eventNames.js';
 import { eventBus } from './EventBus.js';
+import { NPC_IDS } from '../config/npcProfiles.js';
+import {
+  DEFAULT_NPC_BEHAVIORS,
+  isAllowedNpcBehavior,
+} from '../config/locationConfig.js';
 
-const CORE_NPC_IDS = new Set(['neighbor', 'parkKeeper', 'shopClerk']);
+const CORE_NPC_IDS = new Set(NPC_IDS);
 const TUTORIAL_COMPLETED_STEP = 5;
 
 /**
@@ -11,7 +16,7 @@ const TUTORIAL_COMPLETED_STEP = 5;
  */
 function createInitialState() {
   return {
-    saveVersion: 2,
+    saveVersion: 4,
     player: {
       name: '新居民',
       identity: '自由职业者',
@@ -24,6 +29,10 @@ function createInitialState() {
       tutorial: { status: 'not-started', step: 0 },
     },
     npcRelationships: {},
+    npcMemories: Object.fromEntries(NPC_IDS.map((npcId) => [npcId, []])),
+    npcBehaviorStates: Object.fromEntries(
+      NPC_IDS.map((npcId) => [npcId, { action: DEFAULT_NPC_BEHAVIORS[npcId] ?? 'rest' }]),
+    ),
   };
 }
 
@@ -43,6 +52,31 @@ function normalizeTutorial(savedTutorial) {
     status: savedTutorial?.status === 'not-started' ? 'not-started' : 'active',
     step: Math.min(step, TUTORIAL_COMPLETED_STEP - 1),
   };
+}
+
+/** 将任意旧存档中的 NPC 交流清理为当前三名 NPC 各自最近 5 条。 */
+function normalizeNpcMemories(savedMemories) {
+  const source = savedMemories && typeof savedMemories === 'object' ? savedMemories : {};
+  return Object.fromEntries(NPC_IDS.map((npcId) => {
+    const memories = Array.isArray(source[npcId]) ? source[npcId] : [];
+    const normalized = memories
+      .filter((entry) => entry && typeof entry.player === 'string' && typeof entry.npc === 'string')
+      .map((entry) => ({ player: entry.player.slice(0, 120), npc: entry.npc.slice(0, 500) }))
+      .slice(-5);
+    return [npcId, normalized];
+  }));
+}
+
+/** v3 及更早存档没有行为状态时，为当前三名 NPC 自动生成安全默认值。 */
+function normalizeNpcBehaviorStates(savedStates) {
+  const source = savedStates && typeof savedStates === 'object' ? savedStates : {};
+  return Object.fromEntries(NPC_IDS.map((npcId) => {
+    const savedAction = source[npcId]?.action;
+    const action = isAllowedNpcBehavior(savedAction)
+      ? savedAction
+      : (DEFAULT_NPC_BEHAVIORS[npcId] ?? 'rest');
+    return [npcId, { action }];
+  }));
 }
 
 /**
@@ -126,6 +160,13 @@ class GameStore {
     this.state.npcRelationships[npcId] = oldValue + amount;
   }
 
+  /** 行为存档只允许写入白名单动作，不保存坐标或 Phaser 对象。 */
+  setNpcBehaviorAction(npcId, action) {
+    if (!CORE_NPC_IDS.has(npcId) || !isAllowedNpcBehavior(action)) return false;
+    this.state.npcBehaviorStates[npcId] = { action };
+    return true;
+  }
+
   /** 把旧版或当前版存档恢复为兼容当前 MVP 的全局状态。 */
   hydrate(savedState) {
     const defaults = createInitialState();
@@ -161,6 +202,10 @@ class GameStore {
       npcRelationships: Object.fromEntries(
         Object.entries(savedRelationships).filter(([npcId]) => CORE_NPC_IDS.has(npcId)),
       ),
+      // v1/v2 存档没有 npcMemories 时会自动为三名 NPC 创建空数组。
+      npcMemories: normalizeNpcMemories(source.npcMemories),
+      // v3 及更早存档缺少行为状态时，会补齐白名单内的安全默认动作。
+      npcBehaviorStates: normalizeNpcBehaviorStates(source.npcBehaviorStates),
     };
     eventBus.emit(EVENTS.STATE_CHANGED, this.state);
   }

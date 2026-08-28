@@ -22,28 +22,38 @@ export class QuestSystem {
     return OBJECTIVES[this.step] ?? OBJECTIVES[OBJECTIVES.length - 1];
   }
 
+  /** 教学关键 NPC 的位置优先级高于 AI，任务完成后不再施加限制。 */
+  getNpcBehaviorLock(npcId) {
+    const locks = {
+      0: { npcId: 'neighbor', action: 'home' },
+      1: { npcId: 'parkKeeper', action: 'park' },
+      2: { npcId: 'parkKeeper', action: 'park' },
+      3: { npcId: 'parkKeeper', action: 'park' },
+      4: { npcId: 'shopClerk', action: 'shop' },
+    };
+    const lock = locks[this.step];
+    return lock?.npcId === npcId ? lock.action : null;
+  }
+
   /** 根据当前步骤返回 NPC 对话和对话完成后的任务动作。 */
   interactWithNpc(npcId) {
-    const generic = {
-      neighbor: ['欢迎来到这座城市！有空多去公园走走吧。'],
-      parkKeeper: ['公园的花草每天都需要照料。'],
-      shopClerk: ['欢迎光临！商店还在准备货架。'],
-    };
-
     if (npcId === 'neighbor' && this.step === 0) {
       return {
+        mode: 'scripted',
         lines: ['你就是刚搬来的新邻居吧？我是小林。', '先去公园认识一下陈叔，他会告诉你城市里的生活方式。'],
         onComplete: () => this.advance(1, npcId),
       };
     }
     if (npcId === 'parkKeeper' && this.step === 1) {
       return {
+        mode: 'scripted',
         lines: ['来得正好！我搬工具时丢了三件东西。', '它们散落在公园里，能帮我找回来吗？'],
         onComplete: () => this.advance(2, npcId),
       };
     }
     if (npcId === 'parkKeeper' && this.step === 3) {
       return {
+        mode: 'scripted',
         lines: ['全都找到了，太感谢了！', '还有一个包裹，请帮我送给街边商店的小雨。'],
         onComplete: () => {
           gameStore.removeItem('lost-tool', 3);
@@ -54,6 +64,7 @@ export class QuestSystem {
     }
     if (npcId === 'shopClerk' && this.step === 4 && gameStore.hasItem('delivery-package')) {
       return {
+        mode: 'scripted',
         lines: ['这是陈叔托你送来的吧？辛苦了！', '这是给你的谢礼。接下来可以自由探索这座城市了。'],
         onComplete: () => {
           gameStore.removeItem('delivery-package');
@@ -64,7 +75,8 @@ export class QuestSystem {
         },
       };
     }
-    return { lines: generic[npcId] ?? ['你好！'], onComplete: null };
+    // 非任务关键交互交给 AI 对话；AI 永远拿不到推进任务的回调。
+    return { mode: 'ai', onComplete: null };
   }
 
   collectLostItem() {

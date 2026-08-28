@@ -13,3 +13,9 @@ dist/
 .DS_Store
 Thumbs.db
 *.log
+
+# 本地环境变量可能包含服务端密钥，示例文件除外。
+.env
+.env.*
+!.env.example
+!.env.server.example

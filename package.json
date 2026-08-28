@@ -5,7 +5,9 @@
   "description": "《城市新生活》——基于 Phaser 3 的现代城市探索游戏",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "node server/devLauncher.js",
+    "dev:web": "vite --host 0.0.0.0",
+    "ai:server": "node server/aiServer.js",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
